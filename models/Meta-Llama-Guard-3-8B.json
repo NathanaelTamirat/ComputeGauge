@@ -10,6 +10,8 @@
       128008,
       128009
     ],
+    "name":"Meta-Llama-Guard-3-8B",
+    "model_size":8,
     "hidden_act": "silu",
     "hidden_size": 4096,
     "initializer_range": 0.02,

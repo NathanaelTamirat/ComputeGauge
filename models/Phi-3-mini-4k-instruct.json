@@ -9,6 +9,7 @@
       "AutoConfig": "configuration_phi3.Phi3Config",
       "AutoModelForCausalLM": "modeling_phi3.Phi3ForCausalLM"
     },
+    "name":"Phi-3-mini-4k-instruct",
     "bos_token_id": 1,
     "embd_pdrop": 0.0,
     "eos_token_id": 32000,

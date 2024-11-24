@@ -3,6 +3,7 @@
     "architectures": [
       "MixtralForCausalLM"
     ],
+    "name":"Mixtral-8x7B-Instruct-v0.1",
     "attention_dropout": 0.0,
     "bos_token_id": 1,
     "eos_token_id": 2,

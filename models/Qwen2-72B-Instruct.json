@@ -3,6 +3,7 @@
     "architectures": [
       "Qwen2ForCausalLM"
     ],
+    "name":"Qwen2-72B-Instruct",
     "attention_dropout": 0.0,
     "bos_token_id": 151643,
     "eos_token_id": 151645,

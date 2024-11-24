@@ -3,6 +3,7 @@
     "architectures": [
       "LlamaForCausalLM"
     ],
+    "name":"Meta-Llama-3-8B",
     "attention_bias": false,
     "attention_dropout": 0.0,
     "bos_token_id": 128000,

@@ -11,6 +11,8 @@
       128008,
       128009
     ],
+    "name":"Meta-Llama-3.1-405B-Instruct",
+    "model_size":405,
     "hidden_act": "silu",
     "hidden_size": 16384,
     "initializer_range": 0.02,
