@@ -5,7 +5,7 @@
             "src": "api/handler.go",
             "use": "@vercel/go",
             "config": {
-                "buildCommand": "chmod +x api/build.sh && ./api/build.sh"
+                "includeFiles": ["models/**", "templates/**", "static/**", "docs/**"]
             }
         }
     ],
