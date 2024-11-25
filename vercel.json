@@ -1,0 +1,27 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/handler.go",
+            "use": "@vercel/go"
+        },
+        {
+            "src": "static/**",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "templates/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/api/handler.go"
+        }
+    ]
+}
