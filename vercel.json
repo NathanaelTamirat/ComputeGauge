@@ -12,6 +12,10 @@
         {
             "src": "templates/**",
             "use": "@vercel/static"
+        },
+        {
+            "src": "models/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
