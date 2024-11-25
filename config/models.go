@@ -50,22 +50,38 @@ type MemoryResponse struct {
 	TotalMemory      string `json:"total_memory"`
 }
 
-func getRootDir() string {
-	if vercelRoot := os.Getenv("VERCEL_ROOT_DIR"); vercelRoot != "" {
-		return vercelRoot
+func findModelsDir() (string, error) {
+	if _, err := os.Stat("/var/task/models"); err == nil {
+		return "/var/task/models", nil
+	}
+	if _, err := os.Stat("models"); err == nil {
+		return "models", nil
+	}
+	if _, err := os.Stat("../models"); err == nil {
+		return "../models", nil
 	}
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Printf("Warning: Could not get working directory: %v", err)
-		return "."
+		return "", fmt.Errorf("could not get working directory: %v", err)
 	}
-	return wd
+	possiblePaths := []string{
+		filepath.Join(wd, "models"),
+		filepath.Join(filepath.Dir(wd), "models"),
+	}
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("models directory not found in any expected location")
 }
 
 func LoadModelConfigs() (map[string]ModelConfig, error) {
 	models := make(map[string]ModelConfig)
-	rootDir := getRootDir()
-	modelsDir := filepath.Join(rootDir, "models")
+	modelsDir, err := findModelsDir()
+	if err != nil {
+		return nil, fmt.Errorf("could not find models directory: %v", err)
+	}
 	log.Printf("Loading models from directory: %s", modelsDir)
 	files, err := os.ReadDir(modelsDir)
 	if err != nil {
@@ -75,21 +91,27 @@ func LoadModelConfigs() (map[string]ModelConfig, error) {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
 			filePath := filepath.Join(modelsDir, file.Name())
 			log.Printf("Reading model file: %s", filePath)
+
 			data, err := os.ReadFile(filePath)
 			if err != nil {
 				log.Printf("Error reading model file %s: %v", filePath, err)
 				continue
 			}
+
 			var config ModelConfig
 			if err := json.Unmarshal(data, &config); err != nil {
 				log.Printf("Error parsing model file %s: %v", filePath, err)
 				continue
 			}
+
 			modelName := strings.TrimSuffix(file.Name(), ".json")
 			config.Name = modelName
 			models[modelName] = config
 			log.Printf("Loaded model: %s", modelName)
 		}
+	}
+	if len(models) == 0 {
+		return nil, fmt.Errorf("no valid model configurations found in %s", modelsDir)
 	}
 	return models, nil
 }
