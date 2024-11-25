@@ -1,22 +1,27 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "api/handler.go",
-            "use": "@vercel/go",
-            "config": {
-                "includeFiles": ["models/**", "templates/**", "static/**", "docs/**"]
-            }
-        }
-    ],
-    "routes": [
-        {
-            "src": "/static/(.*)",
-            "dest": "/static/$1"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/api/handler.go"
-        }
-    ]
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/handler.go",
+      "use": "@vercel/go",
+      "config": {
+        "includeFiles": [
+          "models/**/*",
+          "templates/**/*",
+          "static/**/*",
+          "docs/**/*"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/handler.go"
+    }
+  ]
 }
