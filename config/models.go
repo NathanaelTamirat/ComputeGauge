@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,7 @@ type ModelConfig struct {
 	SequenceLength    int     `json:"max_position_embeddings"`
 	Precision         string  `json:"torch_dtype"`
 }
+
 type MemoryRequest struct {
 	ModelSize         float64 `json:"model_size"`
 	BatchSize         int     `json:"batch_size"`
@@ -48,32 +50,46 @@ type MemoryResponse struct {
 	TotalMemory      string `json:"total_memory"`
 }
 
+func getRootDir() string {
+	if vercelRoot := os.Getenv("VERCEL_ROOT_DIR"); vercelRoot != "" {
+		return vercelRoot
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Printf("Warning: Could not get working directory: %v", err)
+		return "."
+	}
+	return wd
+}
+
 func LoadModelConfigs() (map[string]ModelConfig, error) {
 	models := make(map[string]ModelConfig)
-	modelsDir := "models"
-
+	rootDir := getRootDir()
+	modelsDir := filepath.Join(rootDir, "models")
+	log.Printf("Loading models from directory: %s", modelsDir)
 	files, err := os.ReadDir(modelsDir)
 	if err != nil {
 		return nil, fmt.Errorf("error reading models directory: %v", err)
 	}
-
 	for _, file := range files {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
-			data, err := os.ReadFile(filepath.Join(modelsDir, file.Name()))
+			filePath := filepath.Join(modelsDir, file.Name())
+			log.Printf("Reading model file: %s", filePath)
+			data, err := os.ReadFile(filePath)
 			if err != nil {
+				log.Printf("Error reading model file %s: %v", filePath, err)
 				continue
 			}
-
 			var config ModelConfig
 			if err := json.Unmarshal(data, &config); err != nil {
+				log.Printf("Error parsing model file %s: %v", filePath, err)
 				continue
 			}
-
 			modelName := strings.TrimSuffix(file.Name(), ".json")
 			config.Name = modelName
 			models[modelName] = config
+			log.Printf("Loaded model: %s", modelName)
 		}
 	}
-
 	return models, nil
 }
