@@ -3,19 +3,10 @@
     "builds": [
         {
             "src": "api/handler.go",
-            "use": "@vercel/go"
-        },
-        {
-            "src": "static/**",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "templates/**",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "models/**",
-            "use": "@vercel/static"
+            "use": "@vercel/go",
+            "config": {
+                "includeFiles": ["models/**", "templates/**", "static/**", "docs/**"]
+            }
         }
     ],
     "routes": [
