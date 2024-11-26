@@ -51,6 +51,9 @@ type MemoryResponse struct {
 }
 
 func getProjectDir() string {
+	if vercelDir := os.Getenv("VERCEL_ROOT_DIR"); vercelDir != "" {
+		return vercelDir
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Printf("Warning: Could not get working directory: %v", err)
@@ -67,25 +70,38 @@ func getProjectDir() string {
 }
 
 func getModelsDir() string {
-	projectDir := getProjectDir()
-	modelsPath := filepath.Join(projectDir, "models")
-	if _, err := os.Stat(modelsPath); err == nil {
-		return modelsPath
-	}
 	possiblePaths := []string{
+		filepath.Join(getProjectDir(), "models"),
 		"models",
 		filepath.Join(".", "models"),
 		filepath.Join("..", "models"),
+		filepath.Join("..", "..", "models"),
+	}
+	log.Printf("Checking for models directory in the following locations:")
+	for _, path := range possiblePaths {
+		log.Printf("- %s", path)
 	}
 	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			absPath, err := filepath.Abs(path)
-			if err == nil {
-				return absPath
-			}
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			log.Printf("Error resolving path %s: %v", path, err)
+			continue
+		}
+
+		if _, err := os.Stat(absPath); err == nil {
+			log.Printf("Found models directory at: %s", absPath)
+			return absPath
+		} else {
+			log.Printf("Tried path %s (resolved to %s): %v", path, absPath, err)
 		}
 	}
-	return "models"
+	if os.Getenv("VERCEL") != "" {
+		vercelModels := filepath.Join(".", "models")
+		log.Printf("In Vercel environment, using models directory: %s", vercelModels)
+		return vercelModels
+	}
+	log.Printf("No models directory found, defaulting to ./models")
+	return filepath.Join(".", "models")
 }
 
 func LoadModelConfigs() (map[string]ModelConfig, error) {
