@@ -68,16 +68,19 @@ func getProjectDir() string {
 
 func getModelsDir() string {
 	possiblePaths := []string{
+		filepath.Join(getProjectDir(), "cmd", "compute-gauge", "models"),
 		filepath.Join(getProjectDir(), "models"),
 		"models",
 		filepath.Join(".", "models"),
 		filepath.Join("..", "models"),
 		filepath.Join("..", "..", "models"),
 	}
+
 	log.Printf("Checking for models directory in the following locations:")
 	for _, path := range possiblePaths {
 		log.Printf("- %s", path)
 	}
+
 	for _, path := range possiblePaths {
 		absPath, err := filepath.Abs(path)
 		if err != nil {
@@ -91,8 +94,9 @@ func getModelsDir() string {
 			log.Printf("Tried path %s (resolved to %s): %v", path, absPath, err)
 		}
 	}
-	log.Printf("No models directory found, defaulting to ./models")
-	return filepath.Join(".", "models")
+	defaultPath := filepath.Join(getProjectDir(), "cmd", "compute-gauge", "models")
+	log.Printf("No models directory found in search paths, defaulting to: %s", defaultPath)
+	return defaultPath
 }
 
 func LoadModelConfigs() (map[string]ModelConfig, error) {
