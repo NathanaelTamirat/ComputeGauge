@@ -50,21 +50,21 @@ type MemoryResponse struct {
 	TotalMemory      string `json:"total_memory"`
 }
 
-func getProjectDir() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Printf("Warning: Could not get working directory: %v", err)
-		return "."
-	}
-	projectDir := filepath.Join(cwd, "..", "..")
-	absPath, err := filepath.Abs(projectDir)
-	if err != nil {
-		log.Printf("Warning: Could not resolve absolute path: %v", err)
-		return cwd
-	}
-	log.Printf("Project directory: %s", absPath)
-	return absPath
-}
+// func getProjectDir() string {
+// 	cwd, err := os.Getwd()
+// 	if err != nil {
+// 		log.Printf("Warning: Could not get working directory: %v", err)
+// 		return "."
+// 	}
+// 	projectDir := filepath.Join(cwd, "..", "..")
+// 	absPath, err := filepath.Abs(projectDir)
+// 	if err != nil {
+// 		log.Printf("Warning: Could not resolve absolute path: %v", err)
+// 		return cwd
+// 	}
+// 	log.Printf("Project directory: %s", absPath)
+// 	return absPath
+// }
 
 func getModelsDir() string {
 	if os.Getenv("VERCEL") == "1" {
