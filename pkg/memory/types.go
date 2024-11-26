@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"compute-gauge/internal/config"
+	"compute-gauge/pkg/config"
 	"compute-gauge/pkg/gpu"
 	"encoding/json"
 	"html/template"

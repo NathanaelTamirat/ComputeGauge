@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"compute-gauge/internal/config"
+	"compute-gauge/pkg/config"
 	"compute-gauge/pkg/memory"
 	"encoding/json"
 	"fmt"
