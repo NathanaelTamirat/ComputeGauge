@@ -123,29 +123,31 @@ http://localhost:8080
 
 ```
 compute-gauge/
-├── calc/
-│   └── utils.go         # Memory calculation utilities
-├── config/
-│   └── models.go        # Model configurations
-├── models/
-│   └── [model files]    # Predefined model configs
 ├── api/
-│   └── handler.go       # Vercel serverless function
-├── memory/
-│   ├── types.go         # Memory-related types
-│   └── calculator.go    # Memory calculation logic
-├── phyton/              # Python implementation
-│    ├── config.py
-│    ├── utils.py       
-│    └── app.py
-├── static/
-│   ├── css/
-│   └── js/
-├── templates/
-│   └── index.html       # Main UI template
-├── main.go             # HTTP server and routing
-├── vercel.json         # Vercel configuration
-├── documentation.md     # Detailed documentation       
+│   └── v1/
+│       └── handler.go           # Vercel serverless entry point
+├── cmd/
+│   └── compute-gauge/
+│       └── main.go             # Local development entry point
+├── internal/                   # Private application code
+│   ├── app/
+│   │   └── server.go
+│   ├── config/
+│   │   └── models.go
+│   ├── handlers/
+│   └── models/                 # Model JSON definitions
+├── pkg/                       # Public, reusable packages
+│   ├── calc/
+│   │   └── utils.go
+│   ├── gpu/
+│   │   └── recommendations.go
+│   └── memory/
+│       ├── calculator.go
+│       └── types.go
+├── web/
+│   ├── static/
+│   └── templates/
+└── vercel.json     
 ```
 
 
