@@ -10,7 +10,8 @@
           "pkg/**/*",
           "web/templates/**/*",
           "web/static/**/*",
-          "docs/**/*"
+          "docs/**/*",
+          "models/**/*"
         ]
       }
     }
