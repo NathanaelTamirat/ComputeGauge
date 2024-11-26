@@ -11,7 +11,7 @@
           "web/templates/**/*",
           "web/static/**/*",
           "docs/**/*",
-          "models/**/*"
+          "models/**/*.json"
         ]
       }
     }
