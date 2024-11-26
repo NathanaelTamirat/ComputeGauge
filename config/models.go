@@ -50,46 +50,86 @@ type MemoryResponse struct {
 	TotalMemory      string `json:"total_memory"`
 }
 
-func getRootDir() string {
-	if vercelRoot := os.Getenv("VERCEL_ROOT_DIR"); vercelRoot != "" {
-		return vercelRoot
-	}
-	wd, err := os.Getwd()
+func getModelsDir() string {
+	// Get the current working directory
+	cwd, err := os.Getwd()
 	if err != nil {
 		log.Printf("Warning: Could not get working directory: %v", err)
-		return "."
+		return "models"
 	}
-	return wd
+	
+	// Log the current working directory for debugging
+	log.Printf("Current working directory: %s", cwd)
+	
+	// Try different possible paths
+	possiblePaths := []string{
+		filepath.Join(cwd, "models"),
+		filepath.Join(cwd, "..", "models"),
+		"models",
+		"/var/task/models",
+	}
+	
+	// Try each path and use the first one that exists
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			log.Printf("Found models directory at: %s", path)
+			return path
+		} else {
+			log.Printf("Tried path %s: %v", path, err)
+		}
+	}
+	
+	// If no path is found, return the default
+	log.Printf("No models directory found, defaulting to: %s", filepath.Join(cwd, "models"))
+	return filepath.Join(cwd, "models")
 }
 
 func LoadModelConfigs() (map[string]ModelConfig, error) {
 	models := make(map[string]ModelConfig)
-	rootDir := getRootDir()
-	modelsDir := filepath.Join(rootDir, "models")
+	modelsDir := getModelsDir()
+	
 	log.Printf("Loading models from directory: %s", modelsDir)
+	
+	// List directory contents for debugging
+	if entries, err := os.ReadDir(modelsDir); err == nil {
+		log.Printf("Directory contents of %s:", modelsDir)
+		for _, entry := range entries {
+			log.Printf("  - %s", entry.Name())
+		}
+	}
+	
 	files, err := os.ReadDir(modelsDir)
 	if err != nil {
-		return nil, fmt.Errorf("error reading models directory: %v", err)
+		return nil, fmt.Errorf("error reading models directory: %v (path: %s)", err, modelsDir)
 	}
+
 	for _, file := range files {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
 			filePath := filepath.Join(modelsDir, file.Name())
 			log.Printf("Reading model file: %s", filePath)
+			
 			data, err := os.ReadFile(filePath)
 			if err != nil {
 				log.Printf("Error reading model file %s: %v", filePath, err)
 				continue
 			}
+
 			var config ModelConfig
 			if err := json.Unmarshal(data, &config); err != nil {
 				log.Printf("Error parsing model file %s: %v", filePath, err)
 				continue
 			}
+
 			modelName := strings.TrimSuffix(file.Name(), ".json")
 			config.Name = modelName
 			models[modelName] = config
 			log.Printf("Loaded model: %s", modelName)
 		}
 	}
+
+	if len(models) == 0 {
+		return nil, fmt.Errorf("no valid model configurations found in %s", modelsDir)
+	}
+
 	return models, nil
 }
