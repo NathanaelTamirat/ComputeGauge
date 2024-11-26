@@ -67,48 +67,41 @@ func getProjectDir() string {
 }
 
 func getModelsDir() string {
+	if os.Getenv("VERCEL") == "1" {
+		vercelRootDir := os.Getenv("VERCEL_ROOT_DIR")
+		if vercelRootDir != "" {
+			modelsDir := filepath.Join(vercelRootDir, "models")
+			log.Printf("Vercel environment detected. Using models directory: %s", modelsDir)
+			return modelsDir
+		}
+	}
 	possiblePaths := []string{
-		filepath.Join(getProjectDir(), "cmd", "compute-gauge", "models"),
-		filepath.Join(getProjectDir(), "models"),
-		"models",
+		"/var/task/models",
 		filepath.Join(".", "models"),
 		filepath.Join("..", "models"),
 		filepath.Join("..", "..", "models"),
 	}
-
 	log.Printf("Checking for models directory in the following locations:")
 	for _, path := range possiblePaths {
 		log.Printf("- %s", path)
-	}
-
-	for _, path := range possiblePaths {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			log.Printf("Error resolving path %s: %v", path, err)
-			continue
-		}
-		if _, err := os.Stat(absPath); err == nil {
-			log.Printf("Found models directory at: %s", absPath)
-			return absPath
+		if _, err := os.Stat(path); err == nil {
+			log.Printf("Found models directory at: %s", path)
+			return path
 		} else {
-			log.Printf("Tried path %s (resolved to %s): %v", path, absPath, err)
+			log.Printf("Tried path %s: %v", path, err)
 		}
 	}
-	defaultPath := filepath.Join(getProjectDir(), "cmd", "compute-gauge", "models")
-	log.Printf("No models directory found in search paths, defaulting to: %s", defaultPath)
-	return defaultPath
+	log.Printf("No models directory found, defaulting to /var/task/models")
+	return "/var/task/models"
 }
-
 func LoadModelConfigs() (map[string]ModelConfig, error) {
 	models := make(map[string]ModelConfig)
 	modelsDir := getModelsDir()
 	log.Printf("Loading models from directory: %s", modelsDir)
-
 	files, err := os.ReadDir(modelsDir)
 	if err != nil {
 		return nil, fmt.Errorf("error reading models directory: %v (path: %s)", err, modelsDir)
 	}
-
 	for _, file := range files {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
 			filePath := filepath.Join(modelsDir, file.Name())
@@ -118,7 +111,6 @@ func LoadModelConfigs() (map[string]ModelConfig, error) {
 				log.Printf("Error reading model file %s: %v", filePath, err)
 				continue
 			}
-
 			var config ModelConfig
 			if err := json.Unmarshal(data, &config); err != nil {
 				log.Printf("Error parsing model file %s: %v", filePath, err)
@@ -132,7 +124,6 @@ func LoadModelConfigs() (map[string]ModelConfig, error) {
 			log.Printf("Loaded model: %s", modelName)
 		}
 	}
-
 	if len(models) == 0 {
 		return nil, fmt.Errorf("no valid model configurations found in %s", modelsDir)
 	}
