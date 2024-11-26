@@ -12,6 +12,17 @@ import (
 	"path/filepath"
 )
 
+func getProjectDir() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Printf("Warning: Could not get working directory: %v", err)
+		return "."
+	}
+
+	log.Printf("Current working directory: %s", cwd)
+	return cwd
+}
+
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	models, err := config.LoadModelConfigs()
 	if err != nil {
@@ -19,7 +30,12 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	tmpl, err := template.ParseFiles(filepath.Join("templates", "index.html"))
+
+	projectDir := getProjectDir()
+	tmplPath := filepath.Join(projectDir, "templates", "index.html")
+	log.Printf("Loading template from: %s", tmplPath)
+
+	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -64,11 +80,14 @@ func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleDocs serves the documentation markdown file
 func HandleDocs(w http.ResponseWriter, r *http.Request) {
-	docPath := filepath.Join("docs", "documentation.md")
+	projectDir := getProjectDir()
+	docPath := filepath.Join(projectDir, "docs", "documentation.md")
+	log.Printf("Loading documentation from: %s", docPath)
+
 	docContent, err := os.ReadFile(docPath)
 	if err != nil {
+		log.Printf("Error reading documentation: %v", err)
 		http.Error(w, fmt.Sprintf("Error reading documentation: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -76,8 +95,8 @@ func HandleDocs(w http.ResponseWriter, r *http.Request) {
 	w.Write(docContent)
 }
 
-// HandleStatic serves static files
 func HandleStatic(w http.ResponseWriter, r *http.Request, prefix string) {
-	fs := http.FileServer(http.Dir("."))
+	projectDir := getProjectDir()
+	fs := http.FileServer(http.Dir(projectDir))
 	http.StripPrefix(prefix, fs).ServeHTTP(w, r)
 }
