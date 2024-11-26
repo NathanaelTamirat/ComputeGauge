@@ -25,5 +25,8 @@
       "src": "/(.*)",
       "dest": "/api/v1/handler.go"
     }
-  ]
+  ],
+  "env": {
+    "VERCEL_ROOT_DIR": "/var/task"
+  }
 }
