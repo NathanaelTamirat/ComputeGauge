@@ -8,9 +8,7 @@ import (
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
+	path = strings.TrimSuffix(path, "/")
 	if strings.HasPrefix(path, "/static/") {
 		handlers.HandleStatic(w, r, "/")
 		return

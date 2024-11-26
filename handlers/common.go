@@ -92,7 +92,13 @@ func HandleDocs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/markdown")
-	w.Write(docContent)
+	// w.Write(docContent)
+	n, err := w.Write(docContent)
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+		return
+	}
+	log.Printf("Successfully wrote %d bytes", n)
 }
 
 func HandleStatic(w http.ResponseWriter, r *http.Request, prefix string) {

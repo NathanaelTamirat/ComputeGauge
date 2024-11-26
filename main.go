@@ -10,13 +10,12 @@ import (
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		if strings.HasSuffix(path, "/") {
-			path = path[:len(path)-1]
-		}
+		path = strings.TrimSuffix(path, "/")
 		if strings.HasPrefix(path, "/static/") {
-			handlers.HandleStatic(w, r, "/")
+			handlers.HandleStatic(w, r, "/static/")
 			return
 		}
+
 		switch path {
 		case "", "/index", "/index.html":
 			handlers.HandleIndex(w, r)
