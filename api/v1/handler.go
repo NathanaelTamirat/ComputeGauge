@@ -1,7 +1,7 @@
 package api
 
 import (
-	"compute-gauge/internal/handlers"
+	"compute-gauge/pkg/handlers"
 	"net/http"
 	"strings"
 )
