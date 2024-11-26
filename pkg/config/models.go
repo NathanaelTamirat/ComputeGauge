@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var DataTypeSizes = map[string]float64{
@@ -50,92 +47,57 @@ type MemoryResponse struct {
 	TotalMemory      string `json:"total_memory"`
 }
 
-func getProjectDir() string {
-	if vercelDir := os.Getenv("VERCEL_ROOT_DIR"); vercelDir != "" {
-		return vercelDir
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Printf("Warning: Could not get working directory: %v", err)
-		return "."
-	}
-	projectDir := filepath.Join(cwd, "..", "..")
-	absPath, err := filepath.Abs(projectDir)
-	if err != nil {
-		log.Printf("Warning: Could not resolve absolute path: %v", err)
-		return cwd
-	}
-	log.Printf("Project directory: %s", absPath)
-	return absPath
-}
-
-func getModelsDir() string {
-	possiblePaths := []string{
-		filepath.Join(getProjectDir(), "models"),
-		"models",
-		filepath.Join(".", "models"),
-		filepath.Join("..", "models"),
-		filepath.Join("..", "..", "models"),
-	}
-	log.Printf("Checking for models directory in the following locations:")
-	for _, path := range possiblePaths {
-		log.Printf("- %s", path)
-	}
-	for _, path := range possiblePaths {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			log.Printf("Error resolving path %s: %v", path, err)
-			continue
-		}
-
-		if _, err := os.Stat(absPath); err == nil {
-			log.Printf("Found models directory at: %s", absPath)
-			return absPath
-		} else {
-			log.Printf("Tried path %s (resolved to %s): %v", path, absPath, err)
-		}
-	}
-	if os.Getenv("VERCEL") != "" {
-		vercelModels := filepath.Join(".", "models")
-		log.Printf("In Vercel environment, using models directory: %s", vercelModels)
-		return vercelModels
-	}
-	log.Printf("No models directory found, defaulting to ./models")
-	return filepath.Join(".", "models")
+// Predefined model configurations
+var predefinedModels = []string{
+	`{
+		"name": "llama2-7b",
+		"model_size": 7,
+		"hidden_size": 4096,
+		"num_hidden_layers": 32,
+		"num_attention_heads": 32,
+		"num_key_value_heads": 32,
+		"max_position_embeddings": 4096,
+		"torch_dtype": "float16"
+	}`,
+	`{
+		"name": "llama2-13b",
+		"model_size": 13,
+		"hidden_size": 5120,
+		"num_hidden_layers": 40,
+		"num_attention_heads": 40,
+		"num_key_value_heads": 40,
+		"max_position_embeddings": 4096,
+		"torch_dtype": "float16"
+	}`,
+	`{
+		"name": "llama2-70b",
+		"model_size": 70,
+		"hidden_size": 8192,
+		"num_hidden_layers": 80,
+		"num_attention_heads": 64,
+		"num_key_value_heads": 64,
+		"max_position_embeddings": 4096,
+		"torch_dtype": "float16"
+	}`,
 }
 
 func LoadModelConfigs() (map[string]ModelConfig, error) {
 	models := make(map[string]ModelConfig)
-	modelsDir := getModelsDir()
-	log.Printf("Loading models from directory: %s", modelsDir)
 
-	files, err := os.ReadDir(modelsDir)
-	if err != nil {
-		return nil, fmt.Errorf("error reading models directory: %v (path: %s)", err, modelsDir)
-	}
-	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
-			filePath := filepath.Join(modelsDir, file.Name())
-			log.Printf("Reading model file: %s", filePath)
-
-			data, err := os.ReadFile(filePath)
-			if err != nil {
-				log.Printf("Error reading model file %s: %v", filePath, err)
-				continue
-			}
-			var config ModelConfig
-			if err := json.Unmarshal(data, &config); err != nil {
-				log.Printf("Error parsing model file %s: %v", filePath, err)
-				continue
-			}
-			modelName := strings.TrimSuffix(file.Name(), ".json")
-			config.Name = modelName
-			models[modelName] = config
-			log.Printf("Loaded model: %s", modelName)
+	// Load predefined models
+	for _, modelJSON := range predefinedModels {
+		var config ModelConfig
+		if err := json.Unmarshal([]byte(modelJSON), &config); err != nil {
+			log.Printf("Error parsing predefined model: %v", err)
+			continue
 		}
+		models[config.Name] = config
+		log.Printf("Loaded predefined model: %s", config.Name)
 	}
+
 	if len(models) == 0 {
-		return nil, fmt.Errorf("no valid model configurations found in %s", modelsDir)
+		return nil, fmt.Errorf("no valid model configurations found")
 	}
+
 	return models, nil
 }
