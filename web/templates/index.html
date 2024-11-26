@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compute Gauge - ML Memory Calculator</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Compute Gauge</h1>
+        <div class="header-links">
+            <a href="#" onclick="showDocumentation()">Documentation</a>
+            <a href="https://github.com/NathanaelTamirat/ComputeGauge" target="_blank">GitHub</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="form-container">
+            <form id="calculatorForm">
+                <div class="form-group">
+                    <label for="model_select">Select Model</label>
+                    <select id="model_select" name="model_select">
+                        <option value="">Custom Model</option>
+                        {{range $name, $config := .Models}}
+                        <option value="{{$name}}">{{$name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="model_size">Model Size (billions)</label>
+                    <input type="number" id="model_size" name="model_size" required>
+                </div>
+                <div class="form-group">
+                    <label for="torch_dtype">Precision</label>
+                    <select id="torch_dtype" name="torch_dtype" required>
+                        {{range .DataTypes}}
+                        <option value="{{.}}">{{.}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="batch_size">Batch Size</label>
+                    <input type="number" id="batch_size" name="batch_size" required value="1">
+                </div>
+                <div class="form-group">
+                    <label for="sequence_length">Sequence Length</label>
+                    <input type="number" id="sequence_length" name="sequence_length" value="2048">
+                </div>
+                <div class="form-group">
+                    <label for="hidden_size">Hidden Size</label>
+                    <input type="number" id="hidden_size" name="hidden_size" required>
+                </div>
+                <div class="form-group">
+                    <label for="num_hidden_layers">Number of Hidden Layers</label>
+                    <input type="number" id="num_hidden_layers" name="num_hidden_layers" required>
+                </div>
+                <div class="form-group">
+                    <label for="num_attention_heads">Number of Attention Heads</label>
+                    <input type="number" id="num_attention_heads" name="num_attention_heads" required>
+                </div>
+                <div class="form-group">
+                    <label for="optimizer">Optimizer (optional)</label>
+                    <select id="optimizer" name="optimizer">
+                        <option value="">None (Inference Only)</option>
+                        <option value="AdamW">AdamW</option>
+                        <option value="QAdamW">QAdamW (Quantized)</option>
+                        <option value="SGD">SGD</option>
+                    </select>
+                </div>
+                <div class="form-group" id="trainable_params_container" style="display: none;">
+                    <label for="trainable_params_pct">Trainable Parameters (%)</label>
+                    <input type="number" id="trainable_params_pct" name="trainable_params_pct" value="100" min="0" max="100">
+                </div>
+                <button type="submit">Calculate Memory Requirements</button>
+            </form>
+        </div>
+
+        <div class="results-container">
+            <div class="results-placeholder">
+                Enter model parameters to calculate memory requirements
+            </div>
+        </div>
+
+        <div class="gpu-recommendations-container">
+            <h3>GPU Recommendations</h3>
+            <div class="gpu-cards"></div>
+        </div>
+    </div>
+
+    <!-- Documentation Modal -->
+    <div id="documentationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeDocumentation()">&times;</span>
+            <div id="documentationContent" class="documentation-content"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script data-models="{{.ModelsJSON}}" type="application/json"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
