@@ -51,9 +51,6 @@ type MemoryResponse struct {
 }
 
 func getProjectDir() string {
-	if vercelDir := os.Getenv("VERCEL_ROOT_DIR"); vercelDir != "" {
-		return vercelDir
-	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Printf("Warning: Could not get working directory: %v", err)
@@ -87,18 +84,12 @@ func getModelsDir() string {
 			log.Printf("Error resolving path %s: %v", path, err)
 			continue
 		}
-
 		if _, err := os.Stat(absPath); err == nil {
 			log.Printf("Found models directory at: %s", absPath)
 			return absPath
 		} else {
 			log.Printf("Tried path %s (resolved to %s): %v", path, absPath, err)
 		}
-	}
-	if os.Getenv("VERCEL") != "" {
-		vercelModels := filepath.Join(".", "models")
-		log.Printf("In Vercel environment, using models directory: %s", vercelModels)
-		return vercelModels
 	}
 	log.Printf("No models directory found, defaulting to ./models")
 	return filepath.Join(".", "models")
@@ -113,8 +104,8 @@ func LoadModelConfigs() (map[string]ModelConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading models directory: %v (path: %s)", err, modelsDir)
 	}
+
 	for _, file := range files {
-		var config ModelConfig
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
 			filePath := filepath.Join(modelsDir, file.Name())
 			log.Printf("Reading model file: %s", filePath)
@@ -123,16 +114,21 @@ func LoadModelConfigs() (map[string]ModelConfig, error) {
 				log.Printf("Error reading model file %s: %v", filePath, err)
 				continue
 			}
+
+			var config ModelConfig
 			if err := json.Unmarshal(data, &config); err != nil {
 				log.Printf("Error parsing model file %s: %v", filePath, err)
+				continue
 			}
-			continue
+			modelName := strings.TrimSuffix(file.Name(), ".json")
+			if config.Name == "" {
+				config.Name = modelName
+			}
+			models[modelName] = config
+			log.Printf("Loaded model: %s", modelName)
 		}
-		modelName := strings.TrimSuffix(file.Name(), ".json")
-		config.Name = modelName
-		models[modelName] = config
-		log.Printf("Loaded model: %s", modelName)
 	}
+
 	if len(models) == 0 {
 		return nil, fmt.Errorf("no valid model configurations found in %s", modelsDir)
 	}
