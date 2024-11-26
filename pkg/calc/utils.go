@@ -1,7 +1,7 @@
 package calc
 
 import (
-	"compute-gauge/internal/config"
+	"compute-gauge/pkg/config"
 	"fmt"
 	"math"
 )
