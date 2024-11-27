@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Set this to your default branch
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build and prepare static files
+        run: |
+          # Create dist directory
+          mkdir -p ./dist
+          
+          # Copy static assets
+          cp -r web/static ./dist/
+          cp -r web/templates ./dist/
+          cp -r docs ./dist/
+          
+          # Build the Go application
+          go build -o ./dist/server ./cmd/compute-gauge/main.go
+          
+          # Create a simple static index.html that loads your app
+          cat > ./dist/index.html << 'EOL'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Compute Gauge - ML Memory Calculator</title>
+              <link rel="stylesheet" type="text/css" href="static/css/style.css">
+              <meta http-equiv="refresh" content="0;url=/ComputeGauge/static/">
+          </head>
+          <body>
+              <p>Redirecting to the application...</p>
+          </body>
+          </html>
+          EOL
+          
+          # Copy your template as a static file
+          cp web/templates/index.html ./dist/static/index.html
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          force_orphan: true
