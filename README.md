@@ -147,7 +147,9 @@ compute-gauge/
 ├── web/
 │   ├── static/
 │   └── templates/
-└── vercel.json     
+│       └── index.html
+└── go.mod
+└── go.sum 
 ```
 
 
